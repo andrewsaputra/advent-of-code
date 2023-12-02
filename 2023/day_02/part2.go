@@ -13,7 +13,7 @@ import (
 func main() {
 	startTime := time.Now().UnixMilli()
 
-	result := solve("inputs-real.txt")
+	result := solve("inputs.txt")
 	fmt.Println("Result:", result)
 
 	duration := time.Now().UnixMilli() - startTime
