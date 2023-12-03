@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -40,23 +39,26 @@ func solve(path string) int {
 	for scanner.Scan() {
 		line := scanner.Text()
 		numbers = append(numbers, []Numbers{})
-		numStartIdx, numEndIdx := -1, -1
+		numStartIdx, numEndIdx, num := -1, -1, -1
 
 		for col, v := range line {
 			if v >= '0' && v <= '9' {
 				if numStartIdx == -1 {
+					num = int(v - '0')
 					numStartIdx = col
+				} else {
+					num = num*10 + int(v-'0')
 				}
 			} else {
 				if numStartIdx != -1 {
 					numEndIdx = col - 1
-					num, _ := strconv.Atoi(line[numStartIdx : numEndIdx+1])
 					numbers[row] = append(numbers[row], Numbers{
 						Indexes: []int{numStartIdx, numEndIdx},
 						Value:   num,
 					})
 
 					numStartIdx = -1
+					num = -1
 				}
 
 				if v != '.' {
@@ -67,7 +69,6 @@ func solve(path string) int {
 
 		if numStartIdx != -1 {
 			numEndIdx = len(line) - 1
-			num, _ := strconv.Atoi(line[numStartIdx : numEndIdx+1])
 			numbers[row] = append(numbers[row], Numbers{
 				Indexes: []int{numStartIdx, numEndIdx},
 				Value:   num,
