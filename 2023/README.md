@@ -6,3 +6,4 @@
 | 02 | [Cube Conundrum](https://adventofcode.com/2023/day/2) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_02) |
 | 03 | [Gear Ratios](https://adventofcode.com/2023/day/3) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_03) |
 | 04 | [Scratchcards](https://adventofcode.com/2023/day/4) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_04) |
+| 05 | [If You Give A Seed A Fertilizer](https://adventofcode.com/2023/day/5) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_05) |
