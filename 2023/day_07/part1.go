@@ -34,44 +34,19 @@ func solve(path string) int {
 	hands := []Hand{}
 	for scanner.Scan() {
 		line := scanner.Text()
-		//fmt.Println("line", line)
-
-		hand := parseInput(line)
-		//fmt.Println("hand", hand)
-
-		hands = append(hands, hand)
+		hands = append(hands, parseInput(line))
 	}
 
 	sort.Slice(hands, func(i, j int) bool {
-		if hands[i].Combo == hands[j].Combo {
-			for i, v1 := range hands[i].Card {
-				v2 := rune(hands[j].Card[i])
-				if v1 == v2 {
-					continue
-				}
-
-				return cardPower(v1) < cardPower(v2)
-			}
-
-			return true
-		} else {
-			return hands[i].Combo < hands[j].Combo
-		}
+		return comparePower(hands[i], hands[j])
 	})
 
 	total := 0
 	for rank := 1; rank <= len(hands); rank++ {
-		hand := hands[rank-1]
-		total += rank * hand.Bid
+		total += rank * hands[rank-1].Bid
 	}
 
 	return total
-}
-
-type Hand struct {
-	Card  string
-	Bid   int
-	Combo Combo
 }
 
 type Combo int
@@ -86,6 +61,12 @@ const (
 	HIGH_CARD       Combo = 1
 )
 
+type Hand struct {
+	Card  string
+	Bid   int
+	Combo Combo
+}
+
 func parseInput(line string) Hand {
 	strs := strings.Split(line, " ")
 	card := strs[0]
@@ -99,44 +80,24 @@ func parseInput(line string) Hand {
 		m[v]++
 	}
 
+	first, firstAmount := getLargest(m, 0)
+	_, secondAmount := getLargest(m, first)
+
 	combo := HIGH_CARD
-	for k1, v := range m {
-		switch {
-		case v == 5:
-			combo = FIVE_OF_A_KIND
-		case v == 4:
-			combo = FOUR_OF_A_KIND
-		case v == 3:
-			combo = THREE_OF_A_KIND
-			for k2, v2 := range m {
-				if k1 == k2 {
-					continue
-				}
-
-				if v2 == 2 {
-					combo = FULL_HOUSE
-					break
-				}
-			}
-		case v == 2:
-			combo = ONE_PAIR
-			for k2, v2 := range m {
-				if k1 == k2 {
-					continue
-				}
-
-				if v2 == 2 {
-					combo = TWO_PAIR
-					break
-				} else if v2 == 3 {
-					combo = FULL_HOUSE
-					break
-				}
-			}
+	switch firstAmount {
+	case 5:
+		combo = FIVE_OF_A_KIND
+	case 4:
+		combo = FOUR_OF_A_KIND
+	case 3:
+		combo = THREE_OF_A_KIND
+		if secondAmount == 2 {
+			combo = FULL_HOUSE
 		}
-
-		if combo != HIGH_CARD {
-			break
+	case 2:
+		combo = ONE_PAIR
+		if secondAmount == 2 {
+			combo = TWO_PAIR
 		}
 	}
 
@@ -147,19 +108,47 @@ func parseInput(line string) Hand {
 	}
 }
 
-func cardPower(c rune) int {
-	switch c {
-	case 'A':
-		return 14
-	case 'K':
-		return 13
-	case 'Q':
-		return 12
-	case 'J':
-		return 11
-	case 'T':
-		return 10
-	default:
-		return int(c - '0')
+func getLargest(m map[rune]int, exclude rune) (rune, int) {
+	maxAmount := 0
+	var largest rune
+
+	for k, v := range m {
+		if k == exclude {
+			continue
+		}
+
+		if v > maxAmount {
+			maxAmount = v
+			largest = k
+		}
+	}
+
+	return largest, maxAmount
+}
+
+func comparePower(hand1 Hand, hand2 Hand) bool {
+	findPos := func(c rune) int {
+		for i, v := range "23456789TJQKA" {
+			if c == v {
+				return i
+			}
+		}
+
+		return -1
+	}
+
+	if hand1.Combo == hand2.Combo {
+		for i, v1 := range hand1.Card {
+			v2 := rune(hand2.Card[i])
+			if v1 == v2 {
+				continue
+			}
+
+			return findPos(v1) < findPos(v2)
+		}
+
+		return true
+	} else {
+		return hand1.Combo < hand2.Combo
 	}
 }
