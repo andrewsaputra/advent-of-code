@@ -9,3 +9,5 @@
 | 05 | [If You Give A Seed A Fertilizer](https://adventofcode.com/2023/day/5) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_05) |
 | 06 | [Wait For It](https://adventofcode.com/2023/day/6) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_06) |
 | 07 | [Camel Cards](https://adventofcode.com/2023/day/7) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_07) |
+| 08 | [Haunted Wasteland](https://adventofcode.com/2023/day/8) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_08) |
+| 09 | [Mirage Maintenance](https://adventofcode.com/2023/day/9) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_09) |
