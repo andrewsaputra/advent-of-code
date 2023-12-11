@@ -11,4 +11,4 @@
 | 07 | [Camel Cards](https://adventofcode.com/2023/day/7) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_07) |
 | 08 | [Haunted Wasteland](https://adventofcode.com/2023/day/8) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_08) |
 | 09 | [Mirage Maintenance](https://adventofcode.com/2023/day/9) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_09) |
-| 11 | [Mirage Maintenance](https://adventofcode.com/2023/day/11) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_11) |
+| 11 | [Cosmic Expansion](https://adventofcode.com/2023/day/11) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_11) |
