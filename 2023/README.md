@@ -13,3 +13,4 @@
 | 09 | [Mirage Maintenance](https://adventofcode.com/2023/day/9) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_09) |
 | 10 | [Pipe Maze](https://adventofcode.com/2023/day/10) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_10) |
 | 11 | [Cosmic Expansion](https://adventofcode.com/2023/day/11) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_11) |
+| 13 | [Point of Incidence](https://adventofcode.com/2023/day/13) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_13) |
