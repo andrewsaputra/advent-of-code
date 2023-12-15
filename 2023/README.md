@@ -16,3 +16,4 @@
 | 12 | [Hot Springs](https://adventofcode.com/2023/day/12) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_12) |
 | 13 | [Point of Incidence](https://adventofcode.com/2023/day/13) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_13) |
 | 14 | [Parabolic Reflector Dish](https://adventofcode.com/2023/day/14) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_14) |
+| 15 | [Lens Library](https://adventofcode.com/2023/day/15) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_15) |
