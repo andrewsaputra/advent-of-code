@@ -19,3 +19,4 @@
 | 15 | [Lens Library](https://adventofcode.com/2023/day/15) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_15) |
 | 16 | [The Floor Will Be Lava](https://adventofcode.com/2023/day/16) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_16) |
 | 18 | [Lavaduct Lagoon](https://adventofcode.com/2023/day/18) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_18) |
+| 19 | [Aplenty](https://adventofcode.com/2023/day/19) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_19) |
