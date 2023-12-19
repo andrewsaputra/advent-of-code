@@ -45,17 +45,27 @@ func solvePart1(seeds []int, allCodecs [][]Codec) int {
 func solvePart2(seeds []int, allCodecs [][]Codec) int {
 	ch := make(chan int)
 	wg := sync.WaitGroup{}
+	batchSize := 1000000
 
 	go func() {
 		for i := 0; i < len(seeds); i += 2 {
 			minSeed := seeds[i]
 			maxSeed := minSeed + seeds[i+1] - 1
 
-			wg.Add(1)
-			go func(min int, max int) {
-				defer wg.Done()
-				ch <- smallestMapping(min, max, allCodecs)
-			}(minSeed, maxSeed)
+			for minSeed <= maxSeed {
+				upperLimit := minSeed + batchSize - 1
+				if upperLimit > maxSeed {
+					upperLimit = maxSeed
+				}
+
+				wg.Add(1)
+				go func(min int, max int) {
+					defer wg.Done()
+					ch <- smallestMapping(min, max, allCodecs)
+				}(minSeed, upperLimit)
+
+				minSeed = upperLimit + 1
+			}
 		}
 
 		wg.Wait()
