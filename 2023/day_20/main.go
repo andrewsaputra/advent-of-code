@@ -195,17 +195,15 @@ func parseInputs(path string) map[string]Module {
 			modules[label] = module
 		} else {
 			modules[label] = Module{
-				Type:         moduleType,
-				Destinations: destinations,
+				Type:          moduleType,
+				Destinations:  destinations,
+				InputMemories: make(map[string]Pulse),
 			}
 		}
 
 		for _, dest := range destinations {
 			destModule, ok := modules[dest]
 			if ok {
-				if len(destModule.InputMemories) == 0 {
-					destModule.InputMemories = make(map[string]Pulse)
-				}
 				destModule.InputMemories[label] = LOW
 				modules[dest] = destModule
 			} else {
