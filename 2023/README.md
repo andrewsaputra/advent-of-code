@@ -22,3 +22,4 @@
 | 18 | [Lavaduct Lagoon](https://adventofcode.com/2023/day/18) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_18) |
 | 19 | [Aplenty](https://adventofcode.com/2023/day/19) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_19) |
 | 20 | [Pulse Propagation](https://adventofcode.com/2023/day/20) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_20) |
+| 21 | [Step Counter](https://adventofcode.com/2023/day/21) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_21) (Part 1 Only) |
