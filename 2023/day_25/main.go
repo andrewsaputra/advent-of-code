@@ -14,13 +14,13 @@ func main() {
 
 	edges := readInputs("inputs.txt")
 
-	//toGraphVizFile(edges, "graph.neato", []Edge{})
+	//toGraphVizFile(edges, "graph.gv", []Edge{})
 	exclusions := []Edge{ //infer these from GraphViz visualizations
 		{Src: "jbx", Dest: "sml"},
 		{Src: "vqj", Dest: "szh"},
 		{Src: "zhb", Dest: "vxr"},
 	}
-	//toGraphVizFile(edges, "graph.neato", exclusions)
+	//toGraphVizFile(edges, "graph.gv", exclusions)
 
 	//take any starting nodes from each group visuals for starting point
 	res1 := solve(edges, exclusions, "lqp", "jqf")
