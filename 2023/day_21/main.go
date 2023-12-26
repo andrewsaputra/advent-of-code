@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -14,10 +15,12 @@ func main() {
 
 	grid, start := parseInput("inputs.txt")
 
-	res1 := moveNormal(grid, start, 64)
+	res1 := calculateReachableCells(grid, start, 64)
 	fmt.Println("Part 1:", res1)
 
-	res2 := solvePart2(grid, start, 500) //WIP solve me
+	//fmt.Println("coba", coba(grid, start, 64))
+
+	res2 := solvePart2(grid, start, 26501365)
 	fmt.Println("Part 2:", res2)
 
 	fmt.Printf("Duration : %vms", time.Now().UnixMilli()-startTime)
@@ -29,51 +32,118 @@ type Item struct {
 	Steps int
 }
 
-func solvePart2(grid [][]byte, start [2]int, targetSteps int) int64 {
-	fullGrid := int64(0)
-	for _, rows := range grid {
-		for _, val := range rows {
-			if val != '#' {
-				fullGrid++
-			}
+func calculateReachableCells(grid [][]byte, start []int, targetSteps int) int64 {
+	indexKey := func(row, col, steps int) string {
+		return fmt.Sprintf("%d-%d-%d", row, col, steps)
+	}
+
+	numRows, numCols := len(grid), len(grid[0])
+
+	//used only for visualizing result
+	resultGrid := make([][]byte, numRows)
+	for row := range resultGrid {
+		resultGrid[row] = make([]byte, numCols)
+		for col := range resultGrid[row] {
+			resultGrid[row][col] = grid[row][col]
 		}
 	}
 
-	total := int64(0)
-	numRows, numCols := len(grid), len(grid[0])
+	visited := make(map[string]bool)
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
+	queue := []Item{{start[0], start[1], 0}}
 
-	for i := range drow {
-		var nextTargetSteps int
-		nextRow := (start[0] + drow[i]*targetSteps) % numRows
-		nextCol := (start[1] + dcol[i]*targetSteps) % numCols
+	var bfs func([]Item) int64
+	bfs = func(queue []Item) int64 {
+		result := int64(0)
+		newQueue := []Item{}
+		for _, item := range queue {
+			row, col := item.Row, item.Col
+			key := indexKey(row, col, item.Steps)
+			if visited[key] {
+				continue
+			}
+			visited[key] = true
 
-		switch {
-		case nextRow < 0:
-			nextTargetSteps = -nextRow
-			nextRow = numRows - 1
-		case nextRow >= 0:
-			nextTargetSteps = nextRow
-			nextRow = 0
-		case nextCol < 0:
-			nextTargetSteps = -nextCol
-			nextCol = numCols - 1
-		case nextCol >= 0:
-			nextTargetSteps = nextCol
-			nextCol = 0
+			if item.Steps == targetSteps {
+				resultGrid[row][col] = '*'
+				result++
+				continue
+			}
+
+			for i := range drow {
+				nextRow := row + drow[i]
+				nextCol := col + dcol[i]
+				if nextRow < 0 || nextCol < 0 || nextRow >= numRows || nextCol >= numCols || grid[nextRow][nextCol] == '#' {
+					continue
+				}
+
+				nextSteps := item.Steps + 1
+				newQueue = append(newQueue, Item{nextRow, nextCol, nextSteps})
+			}
 		}
 
-		fmt.Println(nextTargetSteps)
+		if len(newQueue) > 0 {
+			result += bfs(newQueue)
+		}
 
+		return result
 	}
 
-	fmt.Println(fullGrid)
-
-	return total
+	result := bfs(queue)
+	//writeResult("output.txt", resultGrid)
+	return result
 }
 
-func parseInput(path string) ([][]byte, [2]int) {
+/*
+Excellent Summary Here : https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21
+
+Important Notes :
+- 26501365 steps = (202300 * 131) + 65
+- grid size = 131 x 131
+- S = center of grid = (65, 65)
+- n = number of grids
+- if n % 2 == 0 :
+  - we have (n+1)^2 odd grids + n^2 even grids
+  - we have n+1 odd outer grid corners and n even inner grid corners
+
+- if n % 2 == 1 :
+  - we have n^2 odd grids + (n+1)^2 even grids
+  - we have n+1 even outer grid corners and n odd inner grid corners
+
+- final formula if n % 2 == 0 :
+(n+1)^2 * odd grids + n^2 * even grids - (n+1) * odd outer grid corners + n * even inner grid corners
+*/
+func solvePart2(grid [][]byte, start []int, targetSteps int) int64 {
+	numRows := len(grid)
+	if numRows%2 == 0 {
+		panic("solution only works for odd length grid")
+	}
+
+	if (targetSteps-start[0])%numRows != 0 {
+		panic("solution requires steps which covers full grid length")
+	}
+
+	numGrids := int64((targetSteps - start[0]) / numRows)
+
+	amountFullOddGrid := calculateReachableCells(grid, start, numRows)
+	amountFullEvenGrid := calculateReachableCells(grid, start, numRows-1)
+	amountCornersOddGrid := amountFullOddGrid - calculateReachableCells(grid, start, start[0])
+	amountCornersEvenGrid := amountFullEvenGrid - calculateReachableCells(grid, start, start[0]-1)
+
+	//fmt.Println("amountFullEvenGrid", "amountFullOddGrid", "amountCornersEvenGrid", "amountCornersOddGrid")
+	//fmt.Println(amountFullEvenGrid, amountFullOddGrid, amountCornersEvenGrid, amountCornersOddGrid)
+
+	var result int64
+	result = int64(math.Pow(float64(numGrids+1), 2)) * amountFullOddGrid
+	result += int64(math.Pow(float64(numGrids), 2)) * amountFullEvenGrid
+	result -= (numGrids + 1) * amountCornersOddGrid
+	result += numGrids * amountCornersEvenGrid
+
+	return result
+}
+
+func parseInput(path string) ([][]byte, []int) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Panic(err)
@@ -84,14 +154,14 @@ func parseInput(path string) ([][]byte, [2]int) {
 	scanner.Split(bufio.ScanLines)
 
 	grid := [][]byte{}
-	var start [2]int
+	var start []int
 	numRows := 0
 	for scanner.Scan() {
 		line := scanner.Text()
 		grid = append(grid, []byte(line))
 
 		if colIdx := strings.Index(line, "S"); colIdx != -1 {
-			start = [2]int{numRows, colIdx}
+			start = []int{numRows, colIdx}
 		}
 
 		numRows++
@@ -100,45 +170,16 @@ func parseInput(path string) ([][]byte, [2]int) {
 	return grid, start
 }
 
-func moveNormal(grid [][]byte, start [2]int, targetSteps int) int64 {
-	indexKey := func(row, col, steps int) string {
-		return fmt.Sprintf("%d-%d-%d", row, col, steps)
+func writeResult(output string, grid [][]byte) {
+	file, _ := os.Create(output)
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	for row := range grid {
+		writer.Write(grid[row])
+		writer.WriteByte('\n')
 	}
 
-	numRows, numCols := len(grid), len(grid[0])
-	visited := make(map[string]bool)
-	result := int64(0)
-	drow := []int{-1, 0, 1, 0}
-	dcol := []int{0, 1, 0, -1}
-	queue := []Item{{start[0], start[1], 0}}
-
-	for len(queue) > 0 {
-		item := queue[0]
-		queue = queue[1:]
-
-		row, col := item.Row, item.Col
-		if item.Steps == targetSteps {
-			result++
-			continue
-		}
-
-		for i := range drow {
-			nextRow := row + drow[i]
-			nextCol := col + dcol[i]
-			if nextRow < 0 || nextCol < 0 || nextRow >= numRows || nextCol >= numCols || grid[nextRow][nextCol] == '#' {
-				continue
-			}
-
-			nextSteps := item.Steps + 1
-			key := indexKey(nextRow, nextCol, nextSteps)
-			if visited[key] {
-				continue
-			}
-
-			visited[key] = true
-			queue = append(queue, Item{nextRow, nextCol, nextSteps})
-		}
-	}
-
-	return result
+	writer.Flush()
 }
