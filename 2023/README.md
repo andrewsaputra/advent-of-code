@@ -24,6 +24,6 @@
 | 20 | [Pulse Propagation](https://adventofcode.com/2023/day/20) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_20) |
 | 21 | [Step Counter](https://adventofcode.com/2023/day/21) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_21) |
 | 22 | [Sand Slabs](https://adventofcode.com/2023/day/22) | WIP |
-| 23 | [A Long Walk](https://adventofcode.com/2023/day/23) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_23) (Part 1 Only) |
+| 23 | [A Long Walk](https://adventofcode.com/2023/day/23) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_23) |
 | 24 | [Never Tell Me The Odds](https://adventofcode.com/2023/day/24) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_24) |
 | 25 | [Snowverload](https://adventofcode.com/2023/day/25) | [Solution](https://github.com/andrewsaputra/advent-of-code/tree/main/2023/day_25) |
