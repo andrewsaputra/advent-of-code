@@ -4,6 +4,7 @@ import (
 	"andrewsaputra/adventofcode2024/helper"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 func Solve() {
@@ -33,22 +34,39 @@ func solvePart1(path string) int {
 func solvePart2(path string) int {
 	matrix, startRow, startCol := toInputs(path)
 
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
 	var result int
+
+	process := func(matrix [][]byte, startRow, startCol, blockRow, blockCol int) {
+		defer wg.Done()
+
+		copyMatrix := make([][]byte, len(matrix))
+		for row := range copyMatrix {
+			copyMatrix[row] = append([]byte{}, matrix[row]...)
+		}
+		copyMatrix[blockRow][blockCol] = '#'
+
+		path := Path{Row: startRow, Col: startCol, Dir: UP}
+		if patrolHasLoop(copyMatrix, make(map[Path]bool), path) {
+			mutex.Lock()
+			result++
+			mutex.Unlock()
+		}
+	}
+
 	for row := range matrix {
 		for col, val := range matrix[row] {
 			if val != '.' {
 				continue
 			}
 
-			matrix[row][col] = '#'
-			path := Path{Row: startRow, Col: startCol, Dir: UP}
-			explored := make(map[Path]bool)
-			if patrolHasLoop(matrix, explored, path) {
-				result++
-			}
-			matrix[row][col] = '.'
+			wg.Add(1)
+			go process(matrix, startRow, startCol, row, col)
 		}
 	}
+
+	wg.Wait()
 
 	return result
 }
@@ -66,6 +84,12 @@ func toInputs(path string) (matrix [][]byte, startRow int, startCol int) {
 	return
 }
 
+type Path struct {
+	Row int
+	Col int
+	Dir Direction
+}
+
 type Direction int
 
 const (
@@ -77,10 +101,6 @@ const (
 
 func patrol(matrix [][]byte, row int, col int, dir Direction) {
 	numRows, numCols := len(matrix), len(matrix[0])
-	if row < 0 || row >= numRows || col < 0 || col >= numCols {
-		return
-	}
-
 	matrix[row][col] = 'x'
 
 	var nextRow, nextCol int
@@ -99,6 +119,33 @@ func patrol(matrix [][]byte, row int, col int, dir Direction) {
 	}
 
 	patrol(matrix, nextRow, nextCol, dir)
+}
+
+func patrolHasLoop(matrix [][]byte, explored map[Path]bool, path Path) bool {
+	if explored[path] {
+		return true
+	}
+
+	numRows, numCols := len(matrix), len(matrix[0])
+	explored[path] = true
+	nextDir := path.Dir
+
+	var nextRow, nextCol int
+	for {
+		nextRow, nextCol = nextPos(path.Row, path.Col, nextDir)
+		if nextRow < 0 || nextRow >= numRows || nextCol < 0 || nextCol >= numCols {
+			return false
+		}
+
+		if matrix[nextRow][nextCol] == '#' {
+			nextDir = turnRight(nextDir)
+			continue
+		}
+
+		break
+	}
+
+	return patrolHasLoop(matrix, explored, Path{Row: nextRow, Col: nextCol, Dir: nextDir})
 }
 
 func nextPos(row, col int, dir Direction) (nextRow, nextCol int) {
@@ -131,41 +178,4 @@ func turnRight(curr Direction) Direction {
 	default:
 		return UP
 	}
-}
-
-type Path struct {
-	Row int
-	Col int
-	Dir Direction
-}
-
-func patrolHasLoop(matrix [][]byte, explored map[Path]bool, path Path) bool {
-	numRows, numCols := len(matrix), len(matrix[0])
-	if path.Row < 0 || path.Row >= numRows || path.Col < 0 || path.Col >= numCols {
-		return false
-	}
-
-	if explored[path] {
-		return true
-	}
-
-	explored[path] = true
-
-	var nextRow, nextCol int
-	nextDir := path.Dir
-	for {
-		nextRow, nextCol = nextPos(path.Row, path.Col, nextDir)
-		if nextRow < 0 || nextRow >= numRows || nextCol < 0 || nextCol >= numCols {
-			return false
-		}
-
-		if matrix[nextRow][nextCol] == '#' {
-			nextDir = turnRight(nextDir)
-			continue
-		}
-
-		break
-	}
-
-	return patrolHasLoop(matrix, explored, Path{Row: nextRow, Col: nextCol, Dir: nextDir})
 }
