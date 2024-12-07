@@ -33,6 +33,7 @@ func solvePart1(path string) int {
 
 func solvePart2(path string) int {
 	matrix, startRow, startCol := toInputs(path)
+	patrol(matrix, startRow, startCol, UP)
 
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -57,7 +58,7 @@ func solvePart2(path string) int {
 
 	for row := range matrix {
 		for col, val := range matrix[row] {
-			if val != '.' {
+			if val != 'x' || (row == startRow && col == startCol) {
 				continue
 			}
 
