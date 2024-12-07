@@ -20,7 +20,7 @@ func solvePart1(path string) int64 {
 	for _, line := range helper.ReadLines(path) {
 		target, nums := toInputs(line)
 		if isPossible(target, nums, 0, 0) {
-			result += int64(target)
+			result += target
 		}
 	}
 
@@ -32,7 +32,7 @@ func solvePart2(path string) int64 {
 	for _, line := range helper.ReadLines(path) {
 		target, nums := toInputs(line)
 		if isPossible2(target, nums, 0, 0) {
-			result += int64(target)
+			result += target
 		}
 	}
 
