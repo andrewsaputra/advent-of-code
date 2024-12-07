@@ -3,6 +3,7 @@ package day07
 import (
 	"andrewsaputra/adventofcode2024/helper"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -70,8 +71,6 @@ func isPossible2(target int64, nums []int64, curr int64, idx int) bool {
 }
 
 func combineNums(a, b int64) int64 {
-	str := strconv.FormatInt(a, 10) + strconv.FormatInt(b, 10)
-	res, _ := strconv.ParseInt(str, 10, 64)
-
-	return res
+	digits := len(strconv.FormatInt(b, 10))
+	return a*int64(math.Pow10(digits)) + b
 }
