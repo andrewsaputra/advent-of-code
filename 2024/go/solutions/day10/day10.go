@@ -43,10 +43,7 @@ func solvePart2(path string) int {
 				continue
 			}
 
-			var rating int
-			trailRatingDFS(matrix, &rating, row, col)
-			result += rating
-
+			result += trailRatingDFS(matrix, row, col)
 		}
 	}
 
@@ -87,16 +84,17 @@ func trailScoreDFS(matrix [][]byte, result map[Pos]bool, row int, col int) {
 	}
 }
 
-func trailRatingDFS(matrix [][]byte, result *int, row int, col int) {
+func trailRatingDFS(matrix [][]byte, row int, col int) int {
 	if matrix[row][col] == '9' {
-		*result++
-		return
+		return 1
 	}
 
 	numRows, numCols := len(matrix), len(matrix[0])
 	nextVal := matrix[row][col] + 1
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
+
+	var result int
 	for i := range drow {
 		nextRow := row + drow[i]
 		nextCol := col + dcol[i]
@@ -104,6 +102,7 @@ func trailRatingDFS(matrix [][]byte, result *int, row int, col int) {
 			continue
 		}
 
-		trailRatingDFS(matrix, result, nextRow, nextCol)
+		result += trailRatingDFS(matrix, nextRow, nextCol)
 	}
+	return result
 }
