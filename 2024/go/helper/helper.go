@@ -2,6 +2,7 @@ package helper
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -44,4 +45,19 @@ func AbsDiff(v1 int, v2 int) int {
 		return v1 - v2
 	}
 	return v2 - v1
+}
+
+func ToMatrix(filepath string) [][]byte {
+	result := [][]byte{}
+	for _, line := range ReadLines(filepath) {
+		result = append(result, []byte(line))
+	}
+	return result
+}
+
+func PrintMatrix(matrix [][]byte) {
+	for _, rowData := range matrix {
+		fmt.Println(string(rowData))
+	}
+	fmt.Println()
 }
