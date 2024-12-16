@@ -17,7 +17,8 @@ func Solve() {
 func solvePart1(path string) int {
 	matrix := helper.ToMatrix(path)
 	startRow, startCol := findStartPos(matrix)
-	return travelDjikstra(matrix, startRow, startCol)
+	minScore := make(map[string]int)
+	return travelDjikstra(matrix, minScore, startRow, startCol)
 }
 
 func solvePart2(path string) int {
@@ -25,8 +26,8 @@ func solvePart2(path string) int {
 	pathMatrix := helper.ToMatrix(path)
 	startRow, startCol := findStartPos(matrix)
 	minScore := make(map[string]int)
-	targetScore := travelDjikstra(matrix, startRow, startCol)
-	travelDFS(matrix, pathMatrix, minScore, &Item{Row: startRow, Col: startCol, Score: 0, Dir: EAST}, targetScore)
+	travelDjikstra(matrix, minScore, startRow, startCol)
+	travelDFS(matrix, pathMatrix, minScore, &Item{Row: startRow, Col: startCol, Score: 0, Dir: EAST})
 
 	var result int
 	for row := range pathMatrix {
@@ -84,18 +85,17 @@ func findStartPos(matrix [][]byte) (int, int) {
 	return -1, -1
 }
 
-func travelDjikstra(matrix [][]byte, startRow int, startCol int) int {
-	cacheKey := func(item Item) string {
-		return fmt.Sprintf("%d-%d-%d", item.Row, item.Col, item.Dir)
-	}
+func cacheKey(item Item) string {
+	return fmt.Sprintf("%d-%d-%d", item.Row, item.Col, item.Dir)
+}
 
+func travelDjikstra(matrix [][]byte, minScore map[string]int, startRow int, startCol int) int {
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 	heap.Push(pq, &Item{Row: startRow, Col: startCol, Dir: EAST})
 
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
-	minScore := make(map[string]int)
 
 	for pq.Len() > 0 {
 		item := heap.Pop(pq).(*Item)
@@ -131,15 +131,9 @@ func travelDjikstra(matrix [][]byte, startRow int, startCol int) int {
 	return -1
 }
 
-func travelDFS(matrix [][]byte, pathMatrix [][]byte, minScore map[string]int, item *Item, targetScore int) {
-	cacheKey := func(item Item) string {
-		return fmt.Sprintf("%d-%d-%d", item.Row, item.Col, item.Dir)
-	}
-
+func travelDFS(matrix [][]byte, pathMatrix [][]byte, minScore map[string]int, item *Item) {
 	if matrix[item.Row][item.Col] == 'E' {
-		if item.Score == targetScore {
-			markPath(item, pathMatrix)
-		}
+		markPath(item, pathMatrix)
 		return
 	}
 
@@ -159,15 +153,10 @@ func travelDFS(matrix [][]byte, pathMatrix [][]byte, minScore map[string]int, it
 			nextScore += 1000
 		}
 
-		if nextScore > targetScore {
-			continue
-		}
-
 		nextItem := &Item{Row: nextRow, Col: nextCol, Score: nextScore, Dir: nextDir, Prev: item}
 		key := cacheKey(*nextItem)
-		if val, ok := minScore[key]; !ok || nextScore <= val {
-			minScore[key] = nextScore
-			travelDFS(matrix, pathMatrix, minScore, nextItem, targetScore)
+		if val, ok := minScore[key]; ok && nextScore <= val {
+			travelDFS(matrix, pathMatrix, minScore, nextItem)
 		}
 	}
 }
