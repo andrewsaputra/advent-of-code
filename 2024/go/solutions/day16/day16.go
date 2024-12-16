@@ -2,103 +2,180 @@ package day16
 
 import (
 	"andrewsaputra/adventofcode2024/helper"
+	"container/heap"
 	"fmt"
-	"math"
 )
 
 func Solve() {
-	res1 := solvePart1("inputs/day16-test.txt")
+	res1 := solvePart1("inputs/day16.txt")
 	fmt.Println("Part 1:", res1)
 
-	res11 := solvePart1("inputs/day16.txt")
-	fmt.Println("Part 11:", res11)
-
-	//res2 := solvePart2("inputs/day01.txt")
-	//fmt.Println("Part 2:", res2)
+	res2 := solvePart2("inputs/day16.txt")
+	fmt.Println("Part 2:", res2)
 }
 
 func solvePart1(path string) int {
 	matrix := helper.ToMatrix(path)
-	startPos, endPos := findStartEnd(matrix)
-	memo := make(map[Pos]int)
-	visited := make(map[Pos]bool)
-	res := travel(matrix, memo, visited, startPos, endPos)
-	return res
+	startRow, startCol := findStartPos(matrix)
+	return travelDjikstra(matrix, startRow, startCol)
 }
 
 func solvePart2(path string) int {
-	return 0
+	matrix := helper.ToMatrix(path)
+	pathMatrix := helper.ToMatrix(path)
+	startRow, startCol := findStartPos(matrix)
+	minScore := make(map[string]int)
+	targetScore := travelDjikstra(matrix, startRow, startCol)
+	travelDFS(matrix, pathMatrix, minScore, &Item{Row: startRow, Col: startCol, Score: 0, Dir: EAST}, targetScore)
+
+	var result int
+	for row := range pathMatrix {
+		for _, val := range pathMatrix[row] {
+			if val == 'O' {
+				result++
+			}
+		}
+	}
+
+	return result
 }
 
 type Direction int
 
 const (
-	NORTH Direction = 0
-	EAST  Direction = 1
-	SOUTH Direction = 2
-	WEST  Direction = 3
+	NORTH Direction = iota
+	EAST
+	SOUTH
+	WEST
 )
 
-type Pos struct {
-	Row int
-	Col int
-	Dir Direction
+type Item struct {
+	Row   int
+	Col   int
+	Score int
+	Dir   Direction
+	Prev  *Item
 }
 
-func findStartEnd(matrix [][]byte) (start Pos, end Pos) {
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int           { return len(pq) }
+func (pq PriorityQueue) Less(i, j int) bool { return pq[i].Score < pq[j].Score }
+func (pq PriorityQueue) Swap(i, j int)      { pq[i], pq[j] = pq[j], pq[i] }
+
+func (pq *PriorityQueue) Push(v any) { *pq = append(*pq, v.(*Item)) }
+func (pq *PriorityQueue) Pop() any {
+	idx := len(*pq) - 1
+	item := (*pq)[idx]
+	(*pq)[idx] = nil
+	*pq = (*pq)[:idx]
+
+	return item
+}
+
+func findStartPos(matrix [][]byte) (int, int) {
 	for row := range matrix {
 		for col, val := range matrix[row] {
 			if val == 'S' {
-				start = Pos{Row: row, Col: col, Dir: EAST}
-			} else if val == 'E' {
-				end = Pos{Row: row, Col: col}
+				return row, col
 			}
 		}
 	}
-	return
+	return -1, -1
 }
 
-func travel(matrix [][]byte, memo map[Pos]int, visited map[Pos]bool, pos Pos, end Pos) int {
-	if pos.Row == end.Row && pos.Col == end.Col {
-		return 0
+func travelDjikstra(matrix [][]byte, startRow int, startCol int) int {
+	cacheKey := func(item Item) string {
+		return fmt.Sprintf("%d-%d-%d", item.Row, item.Col, item.Dir)
 	}
 
-	if val, ok := memo[pos]; ok {
-		return val
+	pq := &PriorityQueue{}
+	heap.Init(pq)
+	heap.Push(pq, &Item{Row: startRow, Col: startCol, Dir: EAST})
+
+	drow := []int{-1, 0, 1, 0}
+	dcol := []int{0, 1, 0, -1}
+	minScore := make(map[string]int)
+
+	for pq.Len() > 0 {
+		item := heap.Pop(pq).(*Item)
+
+		row, col := item.Row, item.Col
+		if matrix[row][col] == 'E' {
+			return item.Score
+		}
+
+		for i := range drow {
+			nextRow := row + drow[i]
+			nextCol := col + dcol[i]
+			if matrix[nextRow][nextCol] == '#' {
+				continue
+			}
+
+			nextDir := Direction(i)
+			nextScore := item.Score + 1
+
+			if nextDir != item.Dir {
+				nextScore += 1000
+			}
+
+			nextItem := &Item{Row: nextRow, Col: nextCol, Score: nextScore, Dir: nextDir, Prev: item}
+			key := cacheKey(*nextItem)
+			if val, ok := minScore[key]; !ok || nextScore < val {
+				minScore[key] = nextScore
+				heap.Push(pq, nextItem)
+			}
+		}
 	}
 
-	visited[pos] = true
+	return -1
+}
+
+func travelDFS(matrix [][]byte, pathMatrix [][]byte, minScore map[string]int, item *Item, targetScore int) {
+	cacheKey := func(item Item) string {
+		return fmt.Sprintf("%d-%d-%d", item.Row, item.Col, item.Dir)
+	}
+
+	if matrix[item.Row][item.Col] == 'E' {
+		if item.Score == targetScore {
+			markPath(item, pathMatrix)
+		}
+		return
+	}
+
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
 
-	score := math.MaxInt32
-	for idx := range drow {
-		if helper.AbsDiff(int(pos.Dir), idx) >= 2 {
-			//continue
-		}
-
-		nextRow := pos.Row + drow[idx]
-		nextCol := pos.Col + dcol[idx]
-		nextDir := Direction(idx)
-		modScore := 1
-		if nextDir != pos.Dir {
-			modScore += 1000
-		}
-
-		nextPos := Pos{Row: nextRow, Col: nextCol, Dir: nextDir}
-
-		if matrix[nextRow][nextCol] == '#' || visited[nextPos] {
+	for i := range drow {
+		nextRow := item.Row + drow[i]
+		nextCol := item.Col + dcol[i]
+		if matrix[nextRow][nextCol] == '#' {
 			continue
 		}
 
-		tmpScore := travel(matrix, memo, visited, nextPos, end)
-		if tmpScore == math.MaxInt32 {
+		nextDir := Direction(i)
+		nextScore := item.Score + 1
+		if nextDir != item.Dir {
+			nextScore += 1000
+		}
+
+		if nextScore > targetScore {
 			continue
 		}
-		score = min(score, modScore+tmpScore)
+
+		nextItem := &Item{Row: nextRow, Col: nextCol, Score: nextScore, Dir: nextDir, Prev: item}
+		key := cacheKey(*nextItem)
+		if val, ok := minScore[key]; !ok || nextScore <= val {
+			minScore[key] = nextScore
+			travelDFS(matrix, pathMatrix, minScore, nextItem, targetScore)
+		}
 	}
+}
 
-	visited[pos] = false
-	memo[pos] = score
-	return score
+func markPath(item *Item, pathMatrix [][]byte) {
+	curr := item
+	for curr != nil {
+		pathMatrix[curr.Row][curr.Col] = 'O'
+		curr = curr.Prev
+	}
 }
