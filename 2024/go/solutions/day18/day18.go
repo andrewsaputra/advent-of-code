@@ -79,30 +79,6 @@ type Item struct {
 	Steps int
 }
 
-func parseMap(filepath string, gridSize int, numFallen int) [][]byte {
-	matrix := make([][]byte, gridSize)
-	for row := range matrix {
-		matrix[row] = make([]byte, gridSize)
-		for col := range matrix[row] {
-			matrix[row][col] = '.'
-		}
-	}
-
-	var count int
-	for _, line := range helper.ReadLines(filepath) {
-		if count == numFallen {
-			break
-		}
-
-		var row, col int
-		fmt.Sscanf(line, "%d,%d", &col, &row)
-		matrix[row][col] = '#'
-		count++
-	}
-
-	return matrix
-}
-
 func findMinSteps(matrix [][]byte) int {
 	numRows, numCols := len(matrix), len(matrix[0])
 	drow := []int{-1, 0, 1, 0}
