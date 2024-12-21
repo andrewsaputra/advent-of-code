@@ -3,7 +3,6 @@ package day20
 import (
 	"andrewsaputra/adventofcode2024/helper"
 	"fmt"
-	"math"
 )
 
 func Solve() {
@@ -29,7 +28,7 @@ func solvePart1(path string) int {
 			}
 
 			matrix[row][col] = '.'
-			if shortestPath(matrix, startPos, 0, defaultTime-100) != -1 {
+			if honestShortestPath(matrix, startPos) <= defaultTime-100 {
 				result++
 			}
 			matrix[row][col] = '#'
@@ -40,27 +39,30 @@ func solvePart1(path string) int {
 }
 
 func solvePart2(path string) int {
-	matrix := helper.ToMatrix(path)
-	startPos := findStartPos(matrix)
+	return 0
+	/*
+		matrix := helper.ToMatrix(path)
+		startPos := findStartPos(matrix)
 
-	defaultTime := shortestPath(matrix, startPos, 0, math.MaxInt32)
-	numRows, numCols := len(matrix), len(matrix[0])
-	var result int
-	for row := range matrix {
-		for col, val := range matrix[row] {
-			if row == 0 || row >= numRows-1 || col == 0 || col >= numCols-1 || val != '#' {
-				continue
-			}
+		defaultTime := shortestPath(matrix, startPos, 0, math.MaxInt32)
+		numRows, numCols := len(matrix), len(matrix[0])
+		var result int
+		for row := range matrix {
+			for col, val := range matrix[row] {
+				if row == 0 || row >= numRows-1 || col == 0 || col >= numCols-1 || val != '#' {
+					continue
+				}
 
-			matrix[row][col] = '.'
-			if shortestPath(matrix, startPos, 19, defaultTime-100) != -1 {
-				result++
+				matrix[row][col] = '.'
+				if shortestPath(matrix, startPos, 19, defaultTime-100) != -1 {
+					result++
+				}
+				matrix[row][col] = '#'
 			}
-			matrix[row][col] = '#'
 		}
-	}
 
-	return result
+		return result
+	*/
 }
 
 type Pos struct {
@@ -125,11 +127,18 @@ func honestShortestPath(matrix [][]byte, start Pos) int {
 }
 
 func solve(matrix [][]byte, start Pos, cheatsLeft int, timeLimit int) int {
+	/*
+		cacheKey := func(item Item) string {
+			return fmt.Sprintf("%d-%d-%d", item.Pos.Row, item.Pos.Col, item.CheatsLeft)
+		}
+	*/
+
 	numRows, numCols := len(matrix), len(matrix[0])
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
-	minTime := make(map[Item]int)
+	//minTime := make(map[Item]int)
 	usedCheats := make(map[Cheat]bool)
+
 	queue := []Item{{Pos: start, CheatsLeft: cheatsLeft, Cheat: nil}}
 	var elapsedTime int
 	for len(queue) > 0 {
@@ -160,20 +169,17 @@ func solve(matrix [][]byte, start Pos, cheatsLeft int, timeLimit int) int {
 					continue
 				}
 
-				nextNumCheats := item.CheatsLeft
 				if matrix[nextRow][nextCol] == '#' {
-					if nextNumCheats == 0 {
-						continue
+					// todo
+				}
+
+				/*
+					nextItem := Item{Pos: Pos{Row: nextRow, Col: nextCol}, NumCheats: nextNumCheats}
+					if val, ok := minTime[nextItem]; !ok || elapsedTime < val {
+						minTime[nextItem] = elapsedTime
+						newQueue = append(newQueue, nextItem)
 					}
-
-					nextNumCheats--
-				}
-
-				nextItem := Item{Pos: Pos{Row: nextRow, Col: nextCol}, NumCheats: nextNumCheats}
-				if val, ok := minTime[nextItem]; !ok || elapsedTime < val {
-					minTime[nextItem] = elapsedTime
-					newQueue = append(newQueue, nextItem)
-				}
+				*/
 			}
 		}
 		queue = newQueue
@@ -181,53 +187,3 @@ func solve(matrix [][]byte, start Pos, cheatsLeft int, timeLimit int) int {
 	}
 	return len(usedCheats)
 }
-
-/*
-func findCheatAmount(matrix [][]byte, start Pos, numCheats int, timeLimit int) int {
-	numRows, numCols := len(matrix), len(matrix[0])
-	drow := []int{-1, 0, 1, 0}
-	dcol := []int{0, 1, 0, -1}
-	minTime := make(map[Item]int)
-	queue := []Item{{Pos: start, NumCheats: numCheats}}
-	var elapsedTime int
-	for len(queue) > 0 {
-		if elapsedTime > timeLimit {
-			break
-		}
-
-		var newQueue []Item
-		for _, item := range queue {
-			if matrix[item.Row][item.Col] == 'E' {
-				return result
-			}
-
-			for i := range drow {
-				nextRow := item.Row + drow[i]
-				nextCol := item.Col + dcol[i]
-				if nextRow < 1 || nextRow >= numRows-1 || nextCol < 1 || nextCol >= numCols-1 {
-					continue
-				}
-
-				nextNumCheats := item.NumCheats
-
-				if matrix[nextRow][nextCol] == '#' {
-					if nextNumCheats == 0 {
-						continue
-					}
-
-					nextNumCheats--
-				}
-
-				nextItem := Item{Pos: Pos{Row: nextRow, Col: nextCol}, NumCheats: nextNumCheats}
-				if val, ok := minTime[nextItem]; !ok || elapsedTime < val {
-					minTime[nextItem] = elapsedTime
-					newQueue = append(newQueue, nextItem)
-				}
-			}
-		}
-		queue = newQueue
-		result++
-	}
-	return -1
-}
-*/
