@@ -3,122 +3,85 @@ package day13
 import (
 	"andrewsaputra/adventofcode2024/helper"
 	"fmt"
-	"math"
-	"strconv"
-	"strings"
 )
 
 func Solve() {
 	res1 := solvePart1("inputs/day13.txt")
 	fmt.Println("Part 1:", res1)
 
-	res2 := solvePart2("inputs/day13-test.txt")
+	res2 := solvePart2("inputs/day13.txt")
 	fmt.Println("Part 2:", res2)
 }
 
 func solvePart1(path string) int64 {
 	var result int64
-	var ax, ay, bx, by, px, py int64
-	for idx, line := range helper.ReadLines(path) {
-		switch idx % 3 {
-		case 0:
-			ax, ay = parsePos(line[10:], "+")
-		case 1:
-			bx, by = parsePos(line[10:], "+")
-		case 2:
-			px, py = parsePos(line[7:], "=")
+	inputs := helper.ReadLines(path)
+	for i := 0; i < len(inputs); i += 3 {
+		ax, ay, bx, by, px, py := parseInput(inputs, i)
 
-			res := int64(math.MaxInt32)
-			var pressA int64
-			for pressA < 100 {
-				diffX := px - (pressA * ax)
-				diffY := py - (pressA * ay)
-
-				divX, modX := diffX/bx, diffX%bx
-				divY, modY := diffY/by, diffY%by
-
-				if divX == divY && modX == 0 && modY == 0 {
-					res = min(res, pressA*3+divX)
-				}
-
-				pressA++
-			}
-			if res != math.MaxInt32 {
-				result += res
-			}
-		}
+		result += min(
+			calculate1(ax, ay, bx, by, px, py),
+			calculate2(ax, ay, bx, by, px, py),
+		)
 	}
+
 	return result
 }
 
 func solvePart2(path string) int64 {
-	return 0
-
 	var result int64
-	var ax, ay, bx, by, px, py int64
-	for idx, line := range helper.ReadLines(path) {
-		switch idx % 3 {
-		case 0:
-			ax, ay = parsePos(line[10:], "+")
-			//fmt.Println(ax, ay)
-		case 1:
-			bx, by = parsePos(line[10:], "+")
-			//fmt.Println(bx, by)
-		case 2:
-			px, py = parsePos(line[7:], "=")
-			px += 10000000000000
-			py += 10000000000000
-			//fmt.Println(px, py)
+	inputs := helper.ReadLines(path)
+	for i := 0; i < len(inputs); i += 3 {
+		ax, ay, bx, by, px, py := parseInput(inputs, i)
+		px += 10000000000000
+		py += 10000000000000
 
-			//lcmX, lcmY := LCM(ax, bx), LCM(ay, by)
-			//fmt.Println(lcmX, lcmY)
-
-			res := int64(math.MaxInt64)
-			var pressA int64
-			for {
-				diffX := px - (pressA * ax)
-				diffY := py - (pressA * ay)
-
-				if diffX < 0 || diffY < 0 {
-					break
-				}
-
-				divX, modX := diffX/bx, diffX%bx
-				divY, modY := diffY/by, diffY%by
-
-				if divX == divY && modX == 0 && modY == 0 {
-					res = min(res, pressA*3+divX)
-				}
-
-				pressA++
-			}
-			if res != math.MaxInt64 {
-				result += res
-			}
-		}
+		result += min(
+			calculate1(ax, ay, bx, by, px, py),
+			calculate2(ax, ay, bx, by, px, py),
+		)
 	}
+
 	return result
 }
 
-func parsePos(str string, separator string) (x, y int64) {
-	for i, val := range strings.Split(str, ", ") {
-		tmp := strings.Split(val, separator)
-		if i == 0 {
-			x, _ = strconv.ParseInt(tmp[1], 10, 64)
-		} else {
-			y, _ = strconv.ParseInt(tmp[1], 10, 64)
-		}
-	}
+func parseInput(inputs []string, idx int) (ax, ay, bx, by, px, py int64) {
+	fmt.Sscanf(inputs[idx], "Button A: X+%d, Y+%d", &ax, &ay)
+	fmt.Sscanf(inputs[idx+1], "Button B: X+%d, Y+%d", &bx, &by)
+	fmt.Sscanf(inputs[idx+2], "Prize: X=%d, Y=%d", &px, &py)
 	return
 }
 
-func LCM(a int64, b int64) int64 { //least common multiple
-	gcd := func(a, b int64) int64 { //general common divisor
-		for b != 0 {
-			a, b = b, a%b
-		}
-		return a
-	}
+/*
+Equations :
+pressA * ax + pressB * bx = px
+pressA * ay + pressB * by = py
 
-	return a * b / gcd(a, b)
+calculate1 is prioritizing pressA
+pressA = (px * by - py * bx) / (ax * by - ay * bx)
+
+calculate2 is prioritizing pressB
+pressB = (px * ay - ax * py) / (ay * bx - ax * by)
+*/
+
+func calculate1(ax, ay, bx, by, px, py int64) int64 {
+	numerator := px*by - py*bx
+	divisor := ax*by - ay*bx
+	if divisor == 0 || numerator%divisor != 0 {
+		return 0
+	}
+	pressA := numerator / divisor
+	pressB := (px - (ax * pressA)) / bx
+	return 3*pressA + pressB
+}
+
+func calculate2(ax, ay, bx, by, px, py int64) int64 {
+	numerator := px*ay - ax*py
+	divisor := ay*bx - ax*by
+	if divisor == 0 || numerator%divisor != 0 {
+		return 0
+	}
+	pressB := numerator / divisor
+	pressA := (px - (bx * pressB)) / ax
+	return 3*pressA + pressB
 }
