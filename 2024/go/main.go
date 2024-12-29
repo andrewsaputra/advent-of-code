@@ -12,6 +12,7 @@ import (
 	"andrewsaputra/adventofcode2024/solutions/day09"
 	"andrewsaputra/adventofcode2024/solutions/day10"
 	"andrewsaputra/adventofcode2024/solutions/day11"
+	"andrewsaputra/adventofcode2024/solutions/day12"
 	"andrewsaputra/adventofcode2024/solutions/day13"
 	"andrewsaputra/adventofcode2024/solutions/day14"
 	"andrewsaputra/adventofcode2024/solutions/day15"
@@ -63,6 +64,8 @@ func main() {
 		day10.Solve()
 	case "day11":
 		day11.Solve()
+	case "day12":
+		day12.Solve()
 	case "day13":
 		day13.Solve()
 	case "day14":
