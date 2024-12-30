@@ -6,63 +6,37 @@ import (
 )
 
 func Solve() {
-	res1 := solvePart1("inputs/day20.txt")
+	res1 := solve("inputs/day20.txt", 2)
 	fmt.Println("Part 1:", res1)
 
-	//res2 := solvePart2("inputs/day20.txt")
-	//fmt.Println("Part 2:", res2)
+	res2 := solve("inputs/day20.txt", 20)
+	fmt.Println("Part 2:", res2)
 }
 
-func solvePart1(path string) int {
-	matrix := helper.ToMatrix(path)
-	startPos := findStartPos(matrix)
+func solve(path string, cheatsThreshold int) int {
+	matrix, startPos, endPos := toInputs(path)
+	minElapsed := make(map[Pos]int)
+	defaultTime, item := honestShortestPath(matrix, startPos, endPos, minElapsed)
+	routes := constructRoutes(item)
 
-	defaultTime := honestShortestPath(matrix, startPos)
-	fmt.Println("defaultTime", defaultTime)
-	numRows, numCols := len(matrix), len(matrix[0])
 	var result int
-	for row := range matrix {
-		for col, val := range matrix[row] {
-			if row == 0 || row >= numRows-1 || col == 0 || col >= numCols-1 || val != '#' {
+	for pos, elapsed := range minElapsed {
+		if elapsed > defaultTime-100 {
+			continue
+		}
+
+		for _, route := range routes {
+			distance := manhattanDistance(pos, route.Pos)
+			if distance > cheatsThreshold ||
+				elapsed+distance+route.DistanceToEnd > defaultTime-100 {
 				continue
 			}
 
-			matrix[row][col] = '.'
-			if honestShortestPath(matrix, startPos) <= defaultTime-100 {
-				result++
-			}
-			matrix[row][col] = '#'
+			result++
 		}
 	}
 
 	return result
-}
-
-func solvePart2(path string) int {
-	return 0
-	/*
-		matrix := helper.ToMatrix(path)
-		startPos := findStartPos(matrix)
-
-		defaultTime := shortestPath(matrix, startPos, 0, math.MaxInt32)
-		numRows, numCols := len(matrix), len(matrix[0])
-		var result int
-		for row := range matrix {
-			for col, val := range matrix[row] {
-				if row == 0 || row >= numRows-1 || col == 0 || col >= numCols-1 || val != '#' {
-					continue
-				}
-
-				matrix[row][col] = '.'
-				if shortestPath(matrix, startPos, 19, defaultTime-100) != -1 {
-					result++
-				}
-				matrix[row][col] = '#'
-			}
-		}
-
-		return result
-	*/
 }
 
 type Pos struct {
@@ -72,38 +46,24 @@ type Pos struct {
 
 type Item struct {
 	Pos
-	CheatsLeft int
-	Cheat      *Cheat
+	Prev *Item
 }
 
-type Cheat struct {
-	Start Pos
-	End   Pos
+type Route struct {
+	Pos
+	DistanceToEnd int
 }
 
-func findStartPos(matrix [][]byte) (pos Pos) {
-	for row := range matrix {
-		for col := range matrix {
-			if matrix[row][col] == 'S' {
-				pos = Pos{Row: row, Col: col}
-				return
-			}
-		}
-	}
-	return
-}
-
-func honestShortestPath(matrix [][]byte, start Pos) int {
+func honestShortestPath(matrix [][]byte, start Pos, endPos Pos, minElapsed map[Pos]int) (int, *Item) {
 	drow := []int{-1, 0, 1, 0}
 	dcol := []int{0, 1, 0, -1}
-	minTime := make(map[Pos]int)
-	queue := []Pos{start}
+	queue := []Item{{Pos: start, Prev: nil}}
 	var elapsedTime int
 	for len(queue) > 0 {
-		var newQueue []Pos
+		var newQueue []Item
 		for _, item := range queue {
-			if matrix[item.Row][item.Col] == 'E' {
-				return elapsedTime
+			if item.Row == endPos.Row && item.Col == endPos.Col {
+				return elapsedTime, &item
 			}
 
 			for i := range drow {
@@ -114,76 +74,48 @@ func honestShortestPath(matrix [][]byte, start Pos) int {
 				}
 
 				nextPos := Pos{Row: nextRow, Col: nextCol}
-				if val, ok := minTime[nextPos]; !ok || elapsedTime < val {
-					minTime[nextPos] = elapsedTime
-					newQueue = append(newQueue, nextPos)
+				nextItem := Item{Pos: nextPos, Prev: &item}
+				if val, ok := minElapsed[nextPos]; !ok || elapsedTime < val {
+					minElapsed[nextPos] = elapsedTime
+					newQueue = append(newQueue, nextItem)
 				}
 			}
 		}
 		queue = newQueue
 		elapsedTime++
 	}
-	return -1
+
+	return -1, nil
 }
 
-func solve(matrix [][]byte, start Pos, cheatsLeft int, timeLimit int) int {
-	/*
-		cacheKey := func(item Item) string {
-			return fmt.Sprintf("%d-%d-%d", item.Pos.Row, item.Pos.Col, item.CheatsLeft)
-		}
-	*/
-
-	numRows, numCols := len(matrix), len(matrix[0])
-	drow := []int{-1, 0, 1, 0}
-	dcol := []int{0, 1, 0, -1}
-	//minTime := make(map[Item]int)
-	usedCheats := make(map[Cheat]bool)
-
-	queue := []Item{{Pos: start, CheatsLeft: cheatsLeft, Cheat: nil}}
-	var elapsedTime int
-	for len(queue) > 0 {
-		if elapsedTime > timeLimit {
-			break
-		}
-
-		var newQueue []Item
-		for _, item := range queue {
-			if matrix[item.Row][item.Col] == '.' || matrix[item.Row][item.Col] == 'E' {
-				if item.Cheat != nil && item.CheatsLeft > 0 {
-					item.CheatsLeft = 0
-					item.Cheat.End = item.Pos
-				}
-			}
-
-			if matrix[item.Row][item.Col] == 'E' {
-				if item.Cheat != nil && !usedCheats[*item.Cheat] {
-					usedCheats[*item.Cheat] = true
-				}
-				continue
-			}
-
-			for i := range drow {
-				nextRow := item.Row + drow[i]
-				nextCol := item.Col + dcol[i]
-				if nextRow < 0 || nextRow >= numRows || nextCol < 0 || nextCol >= numCols {
-					continue
-				}
-
-				if matrix[nextRow][nextCol] == '#' {
-					// todo
-				}
-
-				/*
-					nextItem := Item{Pos: Pos{Row: nextRow, Col: nextCol}, NumCheats: nextNumCheats}
-					if val, ok := minTime[nextItem]; !ok || elapsedTime < val {
-						minTime[nextItem] = elapsedTime
-						newQueue = append(newQueue, nextItem)
-					}
-				*/
-			}
-		}
-		queue = newQueue
-		elapsedTime++
+func constructRoutes(item *Item) []Route {
+	var distance int
+	var result []Route
+	curr := item
+	for curr != nil {
+		result = append(result, Route{Pos: curr.Pos, DistanceToEnd: distance})
+		distance++
+		curr = curr.Prev
 	}
-	return len(usedCheats)
+	return result
+}
+
+func manhattanDistance(a, b Pos) int {
+	return helper.AbsDiff(a.Row, b.Row) + helper.AbsDiff(a.Col, b.Col)
+}
+
+func toInputs(filepath string) (matrix [][]byte, start Pos, end Pos) {
+	matrix = helper.ToMatrix(filepath)
+	for row := range matrix {
+		for col, val := range matrix[row] {
+			if val == 'S' {
+				start = Pos{Row: row, Col: col}
+				matrix[row][col] = '.'
+			} else if val == 'E' {
+				end = Pos{Row: row, Col: col}
+				matrix[row][col] = '.'
+			}
+		}
+	}
+	return
 }
