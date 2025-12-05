@@ -47,15 +47,6 @@ func solvePart2(path string) int64 {
 
 	for i := 0; i < len(freshRanges)-1; i++ {
 		curr, next := freshRanges[i], freshRanges[i+1]
-		if curr[0] == next[0] {
-			if curr[1] > next[1] {
-				next[1] = curr[1]
-			}
-
-			freshRanges[i] = nil
-			continue
-		}
-
 		if next[0] <= curr[1] && next[1] >= curr[0] {
 			next[1] = max(curr[1], next[1])
 			next[0] = curr[0]
