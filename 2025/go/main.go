@@ -7,6 +7,7 @@ import (
 	"andrewsaputra/adventofcode2025/solutions/day04"
 	"andrewsaputra/adventofcode2025/solutions/day05"
 	"andrewsaputra/adventofcode2025/solutions/day06"
+	"andrewsaputra/adventofcode2025/solutions/day07"
 	"fmt"
 	"os"
 	"time"
@@ -17,7 +18,7 @@ func main() {
 	if len(os.Args) > 1 {
 		day = os.Args[1]
 	} else {
-		day = "day06"
+		day = "day07"
 	}
 
 	startTime := time.Now().UnixMilli()
@@ -35,6 +36,8 @@ func main() {
 		day05.Solve()
 	case "day06":
 		day06.Solve()
+	case "day07":
+		day07.Solve()
 	default:
 		fmt.Println("unregistered solution args")
 	}
