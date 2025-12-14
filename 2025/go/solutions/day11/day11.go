@@ -19,7 +19,7 @@ type Node struct {
 	Next []string
 }
 
-func solvePart1(path string) int {
+func solvePart1(path string) int64 {
 	nodes := make(map[string]Node)
 	for _, line := range helper.ReadLines(path) {
 		tmp := strings.Split(line, ": ")
@@ -28,15 +28,11 @@ func solvePart1(path string) int {
 		nodes[nodeID] = Node{ID: nodeID, Next: next}
 	}
 
-	var result int64
-	visited := make(map[string]bool)
-	dfs(&result, nodes, visited, "you", "out", nil)
-	return int(result)
+	dp := make(map[string]int64)
+	return dfs(nodes, dp, nil, "you", "out")
 }
 
 func solvePart2(path string) int64 {
-	return -1
-
 	nodes := make(map[string]Node)
 	for _, line := range helper.ReadLines(path) {
 		tmp := strings.Split(line, ": ")
@@ -45,41 +41,41 @@ func solvePart2(path string) int64 {
 		nodes[nodeID] = Node{ID: nodeID, Next: next}
 	}
 
-	var _, SvrToFft, _, DacToOut, FftToDac, _ int64
-
-	//dfs(&SvrToDac, nodes, make(map[string]bool), "svr", "dac", nil)
-	dfs(&SvrToFft, nodes, make(map[string]bool), "svr", "fft", nil)
-	fmt.Println("SvrToFft", SvrToFft)
-	//dfs(&DacToFft, nodes, make(map[string]bool), "dac", "fft", nil) // 0
-	dfs(&DacToOut, nodes, make(map[string]bool), "dac", "out", nil) // 21653
-	fmt.Println("DacToOut", DacToOut)
-	dfs(&FftToDac, nodes, make(map[string]bool), "fft", "dac", nil)
-	fmt.Println("FftToDac", FftToDac)
-	//dfs(&FftToOut, nodes, make(map[string]bool), "fft", "out", nil)
-
-	return SvrToFft * DacToOut * FftToDac
+	dp := make(map[string]int64)
+	return dfs(nodes, dp, []string{"dac", "fft"}, "svr", "out")
 }
 
-func dfs(result *int64, nodes map[string]Node, visited map[string]bool, currID string, targetID string, requiredIds []string) {
+func dfs(nodes map[string]Node, dp map[string]int64, required []string, currID string, targetID string) int64 {
+	key := fmt.Sprintf("%s-%s", currID, required)
+	if res, ok := dp[key]; ok {
+		return res
+	}
+
 	if currID == targetID {
-		for _, id := range requiredIds {
-			if !visited[id] {
-				return
-			}
+		if len(required) == 0 {
+			return 1
 		}
 
-		*result++
-		//fmt.Println("found", *result)
-		return
+		return 0
 	}
 
+	for idx, id := range required {
+		if currID == id {
+			tmp := append([]string{}, required[:idx]...)
+			tmp = append(tmp, required[idx+1:]...)
+			required = tmp
+			defer func() {
+				required = append(required, id)
+			}()
+			break
+		}
+	}
+
+	var result int64
 	for _, nextID := range nodes[currID].Next {
-		if visited[nextID] {
-			continue
-		}
-
-		visited[nextID] = true
-		dfs(result, nodes, visited, nextID, targetID, requiredIds)
-		visited[nextID] = false
+		result += dfs(nodes, dp, required, nextID, targetID)
 	}
+
+	dp[key] = result
+	return result
 }
